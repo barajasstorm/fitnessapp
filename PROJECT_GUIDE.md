@@ -1,0 +1,317 @@
+# Weight Tracker - Project Overview
+
+## 📁 Project Structure
+
+```
+weight-tracker/
+├── public/                      # Static assets
+│   ├── pwa-192x192.svg         # PWA icon (192x192)
+│   ├── pwa-512x512.svg         # PWA icon (512x512)
+│   └── apple-touch-icon.svg    # iOS home screen icon
+│
+├── src/
+│   ├── components/             # React components
+│   │   ├── Onboarding.tsx      # Initial setup screen
+│   │   ├── Today.tsx           # Daily entry form (main screen)
+│   │   ├── Progress.tsx        # Charts and statistics
+│   │   ├── History.tsx         # Entry list with edit modal
+│   │   └── BottomNav.tsx       # Bottom navigation bar
+│   │
+│   ├── hooks/
+│   │   └── usePersistentStore.ts  # LocalStorage hook
+│   │
+│   ├── types/
+│   │   └── index.ts            # TypeScript interfaces
+│   │
+│   ├── utils/
+│   │   └── helpers.ts          # Utility functions
+│   │
+│   ├── App.tsx                 # Main app with routing
+│   ├── main.tsx               # Entry point
+│   └── index.css              # Global styles + Tailwind
+│
+├── index.html                  # HTML template
+├── vite.config.ts             # Vite + PWA config
+├── postcss.config.js          # PostCSS config (Tailwind v4)
+├── tsconfig.json              # TypeScript config
+├── eslint.config.js           # ESLint config
+├── package.json               # Dependencies
+├── README.md                  # Full documentation
+└── QUICKSTART.md              # Quick start guide
+```
+
+## 🎯 Key Files Explained
+
+### Components
+
+1. **Onboarding.tsx**
+   - Only shows if no settings exist
+   - Collects: start weight, goal weight, optional weekly target
+   - Saves to localStorage and redirects to Today screen
+
+2. **Today.tsx**
+   - Main screen where you log daily entries
+   - Shows progress summary at top
+   - Week summary card
+   - Form with all tracking fields
+   - Toast notification on save
+
+3. **Progress.tsx**
+   - Line chart with weight over time
+   - 7-day rolling average line
+   - Summary statistics
+   - Habit insights (gym vs non-gym weeks)
+   - Uses Recharts library
+
+4. **History.tsx**
+   - Groups entries by week
+   - Clickable rows open edit modal
+   - Full editor with all fields
+   - Updates entry on save
+
+5. **BottomNav.tsx**
+   - Fixed navigation at bottom
+   - Three tabs: Today, Progress, History
+   - Active tab styling
+
+### Core Logic
+
+1. **usePersistentStore.ts**
+   - Custom hook for data management
+   - Loads from localStorage on init
+   - Auto-saves on every change
+   - Provides: settings, entries, updateSettings, upsertEntry
+   - Handles JSON errors gracefully
+
+2. **types/index.ts**
+   - TypeScript interfaces for type safety
+   - UserSettings, DailyEntry, GymSession, AppData
+
+3. **utils/helpers.ts**
+   - Date formatting functions
+   - Mood emoji mapping
+   - ID generation
+   - Display helpers
+
+### Configuration
+
+1. **vite.config.ts**
+   - PWA plugin configuration
+   - Manifest settings (name, icons, theme)
+   - Service worker setup with Workbox
+   - Cache strategies
+
+2. **postcss.config.js**
+   - Tailwind CSS v4 PostCSS plugin
+   - Note: v4 uses `@import "tailwindcss"` in CSS
+
+3. **index.html**
+   - iOS meta tags for PWA
+   - Theme color
+   - Viewport settings with safe area
+
+## 🎨 Styling Approach
+
+### Tailwind CSS v4
+- Uses new `@import "tailwindcss"` syntax
+- No separate config file needed
+- Utility-first approach throughout
+- Custom safe area classes for iOS
+
+### Design System
+- **Colors:**
+  - Primary: Blue (#2563eb)
+  - Success: Green
+  - Background: Gray-50
+  - Cards: White with shadow-sm
+
+- **Spacing:**
+  - Consistent padding with p-4, p-5
+  - Gap-based layouts (gap-3, gap-4)
+  - Bottom padding on pages (pb-24) for nav clearance
+
+- **Components:**
+  - Rounded cards (rounded-2xl)
+  - Form inputs with focus rings
+  - Gradient backgrounds for accents
+  - Emoji buttons for mood selection
+
+## 💾 Data Flow
+
+### On App Load:
+1. `usePersistentStore` reads from localStorage
+2. If no settings → show Onboarding
+3. If settings exist → show Today screen
+
+### When Saving Entry:
+1. User fills form on Today screen
+2. Click "Save Entry"
+3. `upsertEntry` updates state
+4. useEffect in hook saves to localStorage
+5. Toast notification shows
+
+### When Viewing Progress:
+1. Component receives entries array
+2. useMemo calculates chart data
+3. useMemo calculates weekly stats
+4. Recharts renders visualization
+
+### When Editing Entry:
+1. Click entry in History
+2. Modal opens with pre-filled form
+3. Edit fields
+4. Save → `upsertEntry` updates
+5. Modal closes
+
+## 🔄 State Management
+
+All state is managed through the `usePersistentStore` hook:
+
+```typescript
+const {
+  settings,      // UserSettings | null
+  entries,       // DailyEntry[]
+  updateSettings,  // (settings) => void
+  upsertEntry,     // (entry) => void
+  getEntryByDate,  // (date) => DailyEntry | undefined
+  getAllEntries    // () => DailyEntry[]
+} = usePersistentStore();
+```
+
+No external state management library needed!
+
+## 📱 PWA Features
+
+### Service Worker
+- Auto-generated by vite-plugin-pwa
+- Caches all static assets
+- Works offline after first load
+- Auto-updates on new deploy
+
+### Manifest
+- App name: "Weight Tracker"
+- Standalone display mode
+- Portrait orientation
+- Blue theme color
+
+### iOS Support
+- Apple touch icon
+- Status bar styling
+- Safe area insets
+- Standalone mode support
+
+## 🎯 User Journey
+
+### First Time User:
+1. Opens app → Onboarding
+2. Enters weights → Saves settings
+3. Redirects to Today → Logs first entry
+4. Installs to home screen (iOS)
+5. Returns daily to log progress
+
+### Returning User:
+1. Opens from home screen
+2. Today tab auto-selected
+3. Sees week summary
+4. Logs today's data
+5. Checks Progress tab for trends
+6. Edits past entries in History
+
+## 🧪 Testing Checklist
+
+### Functionality:
+- ✅ Onboarding saves settings
+- ✅ Today form accepts all fields
+- ✅ Entry saves to localStorage
+- ✅ Progress chart renders
+- ✅ History list shows entries
+- ✅ Edit modal works
+- ✅ Navigation switches tabs
+
+### PWA:
+- ✅ Manifest generated
+- ✅ Service worker registered
+- ✅ Works offline
+- ✅ Installable on iOS
+- ✅ Icons display correctly
+
+### Responsive:
+- ✅ Mobile layout works
+- ✅ No horizontal scroll
+- ✅ Touch targets 44px+
+- ✅ Bottom nav fixed
+- ✅ Safe areas respected
+
+## 🚀 Deployment Options
+
+### Option 1: Vercel (Recommended)
+```bash
+npm install -g vercel
+vercel
+```
+
+### Option 2: Netlify
+```bash
+npm run build
+# Drag dist/ folder to Netlify
+```
+
+### Option 3: GitHub Pages
+```bash
+# Add to vite.config.ts:
+base: '/repo-name/'
+
+npm run build
+# Push dist/ to gh-pages branch
+```
+
+### Option 4: Self-host
+```bash
+npm run build
+# Upload dist/ folder to any web server
+```
+
+## 🔐 Privacy & Security
+
+- **No backend** - All data stays on device
+- **No analytics** - Zero tracking
+- **No cookies** - Only localStorage
+- **No network** - Works completely offline
+- **No login** - Personal use only
+
+## 🎓 Learning Resources
+
+If you want to extend the app, check out:
+
+- [React Router Docs](https://reactrouter.com/)
+- [Recharts Examples](https://recharts.org/)
+- [Tailwind CSS v4](https://tailwindcss.com/)
+- [PWA Docs](https://web.dev/progressive-web-apps/)
+- [Vite Guide](https://vite.dev/guide/)
+
+## 🛠 Common Modifications
+
+### Add a new field to daily entry:
+1. Update `DailyEntry` interface in `types/index.ts`
+2. Add form field in `Today.tsx`
+3. Add display in `History.tsx` modal
+4. Update save logic in both components
+
+### Change color scheme:
+1. Update theme_color in `vite.config.ts`
+2. Update theme-color in `index.html`
+3. Replace blue colors in components (e.g., `bg-blue-600`)
+
+### Add a new page:
+1. Create component in `components/`
+2. Add route in `App.tsx`
+3. Add nav item in `BottomNav.tsx`
+
+### Export data:
+1. Add button in settings/menu
+2. Get data from localStorage
+3. Convert to JSON/CSV
+4. Trigger download
+
+Enjoy your weight tracking journey! 🎉
+
